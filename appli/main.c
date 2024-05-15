@@ -38,7 +38,7 @@ void process_ms(void)
 int main(void)
 {
 	//Initialisation de la couche logicielle HAL (Hardware Abstraction Layer)
-	//Cette ligne doit rester la premi�re �tape de la fonction main().
+	//Cette ligne doit rester la première �tape de la fonction main().
 	HAL_Init();
 
 	//Initialisation de l'UART2 � la vitesse de 115200 bauds/secondes (92kbits/s) PA2 : Tx  | PA3 : Rx.
@@ -55,6 +55,14 @@ int main(void)
 	//Initialisation du port du bouton bleu (carte Nucleo)
 	BSP_GPIO_PinCfg(BLUE_BUTTON_GPIO, BLUE_BUTTON_PIN, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
 
+	BSP_GPIO_PinCfg(GPIOA, GPIO_PIN_10, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
+	BSP_GPIO_PinCfg(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
+	BSP_GPIO_PinCfg(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
+
+	BSP_GPIO_PinCfg(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
+
+	BSP_GPIO_PinCfg(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT,GPIO_PULLUP,GPIO_SPEED_FREQ_HIGH);
+
 	//On ajoute la fonction process_ms � la liste des fonctions appel�es automatiquement chaque ms par la routine d'interruption du p�riph�rique SYSTICK
 	Systick_add_callback_function(&process_ms);
 
@@ -62,11 +70,11 @@ int main(void)
 #ifdef utilisation_LCD
 	ILI9341_Init();
 	ILI9341_Fill(ILI9341_COLOR_WHITE);
-	ILI9341_DrawCircle(20,20,5,ILI9341_COLOR_BLUE);
+	//ILI9341_DrawCircle(20,20,5,ILI9341_COLOR_BLUE);
 	//ILI9341_DrawLine(20,20,100,20,ILI9341_COLOR_RED);
 	//ILI9341_DrawLine(20,20,20,100,ILI9341_COLOR_RED);
-	ILI9341_Putc(110,11,'x',&Font_11x18,ILI9341_COLOR_BLUE,ILI9341_COLOR_WHITE);
-	ILI9341_Putc(15,110,'y',&Font_11x18,ILI9341_COLOR_BLUE,ILI9341_COLOR_WHITE);
+	//ILI9341_Putc(110,11,'x',&Font_11x18,ILI9341_COLOR_BLUE,ILI9341_COLOR_WHITE);
+	//ILI9341_Putc(15,110,'y',&Font_11x18,ILI9341_COLOR_BLUE,ILI9341_COLOR_WHITE);
 	//ILI9341_Puts(200,200, "chaine", &Font_11x18, ILI9341_COLOR_BROWN,ILI9341_COLOR_WHITE);
 
 	ILI9341_DrawRectangle(281,31,301,211,ILI9341_COLOR_RED);
@@ -94,40 +102,77 @@ int main(void)
 #endif
 
 #endif
-
+	SERVO_init();
 	Init_Jauge();
 	//uint16_t infrar;
 	uint32_t i = 0;
 	uint8_t cnt = 0;
-	uint32_t vitesse = 0;
+	uint32_t vitesse = 600;
+	uint32_t vitesse_p = 0;
 
 	uint8_t button = 0;
 	uint8_t button1 = 0;
 	uint8_t button2 = 0;
 	uint8_t button3 = 0;
+	uint16_t optique = 0;
+
 
 	uint8_t button1_p = 0;
 	uint8_t button2_p = 0;
 	uint8_t button3_p = 0;
+	uint16_t optique_p = 0;
 	//uint8_t button_p;
+	Remplir_Jauge(vitesse);
 
 	while(1)	//boucle de t�che de fond
 	{
 		//button_p = 1;
 		//button = HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO, BLUE_BUTTON_PIN);
-		if (i== 10000){
-			//Remplir_Jauge(cnt*50);
-			cnt++;
-			if (cnt>19)
-				cnt = 0;
-			i=0;
+
+		button1 = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4);
+		button2 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13);
+		button3 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14);
+
+		optique = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3);
+
+		/*if (optique ){
+			debug_printf("optique \n");
+		}*/
+		//if (i== 10000){
+		if ( (button1 ==1)&&(button1_p==0) ){
+			if (!(vitesse + 50 >1000)){
+				vitesse +=50;
+				Remplir_Jauge(vitesse);
+				debug_printf("vitesse + = %d \n", vitesse);
+			}
 		}
-		button1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
-		//if (button1!=button1_p)
-			debug_printf("button = %d \n",button1);
+		else if( (button2 == 1)&&(button2_p==0) ){
+			if (vitesse >50){
+				vitesse -=50;
+				Remplir_Jauge(vitesse);
+				debug_printf("vitesse - = %d \n", vitesse);
+			}
+		}
+		SERVO_process_test(vitesse);
+
+/*		if (button1){
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, 1 );
+			debug_printf("ON\n");
+		}
+
+		else{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, 0 );
+		}*/
+
 
 		button1_p = button1;
+		button2_p = button2;
+		button3_p = button3;
+		optique_p = optique;
 		i++;
+
+
+
 		/*if (!button){
 			while (!button){
 				//infrar = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);

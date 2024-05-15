@@ -27,7 +27,7 @@ void Init_Jauge(){
 
 
 void Remplir_Jauge(uint16_t vitesse){
-	debug_printf("vitesse : %d \n", vitesse);
+	//debug_printf("vitesse : %d \n", vitesse);
 	static uint16_t jauge_precedent = 0;
 	uint16_t jauge_x0 = 260;
 	uint16_t jauge_x1 = 280;

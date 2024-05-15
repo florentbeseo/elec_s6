@@ -39,6 +39,7 @@ void SERVO_process_test(uint16_t position)//uint16_t position)
 {
 	static uint16_t;
 
-	SERVO_set_position(position);
+	//SERVO_set_position(position);
+	TIMER_set_duty(TIMER1_ID, TIM_CHANNEL_3,position+100);
 	HAL_Delay(10); //anti-rebond "de fortune" en cadencant la lecture du bouton
 }
